@@ -9,8 +9,8 @@
         {% csrf_token %}
         <div class="form-group">
             <legend class= "btn btn-outline-info" type="submit">
+                {{form|crispy}}
             </legend>
-            {{form|crispy}}
             <button href="" class="btn btn-outline-info" type="submit">
                 Select
             </button>
