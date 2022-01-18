@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.views import generic
 from youtubesearchpython import VideosSearch
 import requests
+import wikipedia
+
 
 # Create your views here.
 def home(request):
@@ -79,7 +81,6 @@ def delete_homework(request, pk=None):
     Homework.objects.get(id=pk).delete()
     return redirect("homework")
 
-
 def youtube(request):
     if request.method == "POST":
         form =  DashboardForm(request.POST)
@@ -112,7 +113,6 @@ def youtube(request):
         form = DashboardForm()
     context = {'form':form}
     return render(request, "dashboard/youtube.html", context)
-
 
 def todo(request):
     if request.method == "POST":
@@ -190,12 +190,11 @@ def books(request):
     context = {'form':form}
     return render(request,"dashboard/books.html",context )
 
-
 def dictionary(request):
     if request.method == "POST":
         form =  DashboardForm(request.POST)
         text = request.POST['text']
-        url = "https://api.dictionaryapi.dev/api/v2/entries/en_US/"+text
+        url = "https://api.dictionaryapi.dev/api/v2/entries/en/"+text
         r = requests.get(url)
         answer = r.json()
         try:
@@ -223,3 +222,87 @@ def dictionary(request):
         form = DashboardForm()
         context = {'form':form}
     return render(request, "dashboard/dictionary.html", context)
+
+def wiki(request):
+    if request.method == "POST":
+        text= request.POST['text']
+        form= DashboardForm(request.POST)
+        search= wikipedia.page(text)
+        context= {
+            'form': form,
+            'title': search.title,
+            'link':search.links,
+            'details':search.summary
+        }
+        return render(request, "dashboard/wiki.html", context)
+    else:
+        form = DashboardForm()
+        context = {
+            'form':form
+        }
+    return render(request, "dashboard/wiki.html", context)
+
+def conversion(request):
+    if request.method == "POST":
+        form = ConversionForm(request.POST)
+        if request.POST['measurement'] == 'length':
+            measurement_form = ConversionLengthForm()
+            context = {
+                'form': form,
+                'm_form': measurement_form,
+                'input': True
+            }
+            if 'input' in request.POST:
+                first = request.POST['measure1']
+                second = request.POST['measure2']
+                input = request.POST['input']
+                answer=''
+                if input and int(input) >=0:
+                    if first == 'yard' and second == 'foot':
+                        answer = f'{input} yard = {int(input)*3} foot'
+                    else:
+                        answer = f'{input} foot = {int(input)/3} yard'
+                context = {
+                    'form':form,
+                    'm_form':measurement_form,
+                    'input': True,
+                    'answer': answer
+                }
+        else:
+            measurement_form = ConversionMassForm()
+            context = {
+                'form': form,
+                'm_form': measurement_form,
+                'input': True
+            }
+            if 'input' in request.POST:
+                first = request.POST['measure1']
+                second = request.POST['measure2']
+                input = request.POST['input']
+                answer=''
+                if input and int(input) >=0:
+                    if first == 'pound' and second == 'kilogram':
+                        answer = f'{input} pound = {int(input)*0.45932} kilogram'
+                    else:
+                        answer = f'{input} kilogram = {int(input)* 2.20} pound'
+                context = {
+                    'form':form,
+                    'm_form':measurement_form,
+                    'input': True,
+                    'answer': answer
+                }
+    
+    else:
+        form = ConversionForm()
+        context = {
+            'form':form,
+            'input': False
+        }
+    return render(request, "dashboard/conversion.html", context)
+
+def register( request):
+    form = UserRegistrationForm()
+    context = {
+        'form':form
+    }
+    return render(request, 'dashboard/register.html, context')
